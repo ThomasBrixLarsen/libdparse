@@ -3,5 +3,6 @@
 	"description": "Library for lexing and parsing D source code",
 	"license": "BSL-1.0",
 	"importPaths": ["src"],
-	"sourcePaths": ["src"]
+	"sourcePaths": ["src"],
+    "dflags": ["-relocation-model=pic"]
 }
