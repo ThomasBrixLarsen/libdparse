@@ -1089,17 +1089,25 @@ class Parser
         auto openBrace = expect(tok!"{");
         mixin (nullCheck!`openBrace`);
         node.startLocation = openBrace.index;
+        node.startLine = openBrace.line;
+        node.startColumn = openBrace.column;
         if (!currentIs(tok!"}"))
         {
             mixin (nullCheck!`node.declarationsAndStatements = parseDeclarationsAndStatements()`);
         }
         auto closeBrace = expect(tok!"}");
         if (closeBrace !is null)
+        {
             node.endLocation = closeBrace.index;
+            node.endLine = closeBrace.line;
+            node.endColumn = closeBrace.column;
+		}
         else
         {
             trace("Could not find end of block statement.");
             node.endLocation = size_t.max;
+            node.endLine = size_t.max;
+            node.endColumn = size_t.max;
         }
 
         return node;
@@ -4208,6 +4216,8 @@ class Parser
         mixin(traceEnterAndExit!(__FUNCTION__));
         auto node = allocate!Parameters;
         if (expect(tok!"(") is null) { deallocate(node); return null; }
+        node.startLine = current.line;
+        node.startColumn = current.column;
         Parameter[] parameters;
         if (currentIs(tok!")"))
             goto end;
@@ -4238,6 +4248,8 @@ class Parser
         }
         node.parameters = ownArray(parameters);
     end:
+		node.endLine = current.line;
+        node.endColumn = current.column;
         if (expect(tok!")") is null)
             return null;
         return node;
@@ -5116,7 +5128,12 @@ class Parser
         mixin(traceEnterAndExit!(__FUNCTION__));
         auto node = allocate!StructBody;
         auto start = expect(tok!"{");
-        if (start !is null) node.startLocation = start.index;
+        if (start !is null)
+        {
+			node.startLocation = start.index;
+			node.startLine = start.line;
+			node.startColumn = start.column;
+		}
         Declaration[] declarations;
         while (!currentIs(tok!"}") && moreTokens())
         {
@@ -5126,7 +5143,12 @@ class Parser
         }
         node.declarations = ownArray(declarations);
         auto end = expect(tok!"}");
-        if (end !is null) node.endLocation = end.index;
+        if (end !is null)
+        {
+			node.endLocation = end.index;
+			node.endLine = end.line;
+			node.endColumn = end.column;
+		}
         return node;
     }
 

@@ -897,6 +897,9 @@ public:
      * Byte position of the closing brace
      */
     size_t endLocation;
+    
+    size_t startLine, endLine;
+    size_t startColumn, endColumn;
 
     /** */ DeclarationsAndStatements declarationsAndStatements;
     mixin OpEquals;
@@ -2256,6 +2259,10 @@ public:
         mixin (visitIfNotNull!(parameters));
     }
 
+    size_t startLine;
+    size_t startColumn;
+    size_t endLine;
+    size_t endColumn;
     /** */ Parameter[] parameters;
     /** */ bool hasVarargs;
     mixin OpEquals;
@@ -2582,6 +2589,12 @@ public:
      * Byte position of the closing brace
      */
     size_t endLocation;
+    
+    size_t startLine;
+    size_t startColumn;
+    size_t endLine;
+    size_t endColumn;
+    
     /** */ Declaration[] declarations;
     mixin OpEquals;
 }
