@@ -478,7 +478,7 @@ final class AnonymousEnumMember : ASTNode
     }
     /** */ Type type;
     /** */ Token name;
-    /** */ AssignExpression assignExpression;
+    /** */ ExpressionNode assignExpression;
     /** */ string comment;
 }
 
@@ -491,7 +491,7 @@ public:
         mixin (visitIfNotNull!(items));
     }
     mixin OpEquals;
-    /** */ AssignExpression[] items;
+    /** */ ExpressionNode[] items;
     /** */ size_t startLocation;
     /** */ size_t endLocation;
 }
@@ -541,7 +541,7 @@ public:
         mixin (visitIfNotNull!(assignExpression, nonVoidInitializer));
     }
     mixin OpEquals;
-    /** */ AssignExpression assignExpression;
+    /** */ ExpressionNode assignExpression;
     /** */ NonVoidInitializer nonVoidInitializer;
 }
 
@@ -781,8 +781,8 @@ public:
     {
         mixin (visitIfNotNull!(assertion, message));
     }
-    /** */ AssignExpression assertion;
-    /** */ AssignExpression message;
+    /** */ ExpressionNode assertion;
+    /** */ ExpressionNode message;
     mixin OpEquals;
 }
 
@@ -797,8 +797,8 @@ public:
     /** */ ExpressionNode ternaryExpression;
     /** */ ExpressionNode assignExpression;
     /** */ IdType operator;
-    size_t line;
-    size_t column;
+    /** */ size_t line;
+    /** */ size_t column;
     mixin OpEquals;
 }
 
@@ -961,8 +961,8 @@ public:
     {
         mixin (visitIfNotNull!(low, high, declarationsAndStatements));
     }
-    /** */ AssignExpression low;
-    /** */ AssignExpression high;
+    /** */ ExpressionNode low;
+    /** */ ExpressionNode high;
     /** */ DeclarationsAndStatements declarationsAndStatements;
     mixin OpEquals;
 }
@@ -1406,7 +1406,7 @@ public:
     }
     /** */ Token name;
     /** */ Type type;
-    /** */ AssignExpression assignExpression;
+    /** */ ExpressionNode assignExpression;
     /** */ string comment;
     mixin OpEquals;
 }
@@ -1421,7 +1421,7 @@ public:
     }
     /** */ Token name;
     /** */ TemplateParameters templateParameters;
-    /** */ AssignExpression assignExpression;
+    /** */ ExpressionNode assignExpression;
     /** */ Type type;
     mixin OpEquals;
 }
@@ -1447,7 +1447,9 @@ public:
     {
         mixin (visitIfNotNull!(items));
     }
-    /** */ AssignExpression[] items;
+    /** */ ExpressionNode[] items;
+    /** */ size_t line;
+    /** */ size_t column;
     mixin OpEquals;
 }
 
@@ -1781,7 +1783,7 @@ public:
     {
         mixin (visitIfNotNull!(assignExpression));
     }
-    /** */ AssignExpression assignExpression;
+    /** */ ExpressionNode assignExpression;
     mixin OpEquals;
 }
 
@@ -1905,8 +1907,8 @@ public:
     {
         mixin (visitIfNotNull!(key, value));
     }
-    /** */ AssignExpression key;
-    /** */ AssignExpression value;
+    /** */ ExpressionNode key;
+    /** */ ExpressionNode value;
     mixin OpEquals;
 }
 
@@ -1948,7 +1950,7 @@ public:
     /** */ Token identifier;
     /** */ Parameters parameters;
     /** */ FunctionAttribute[] functionAttributes;
-    /** */ AssignExpression assignExpression;
+    /** */ ExpressionNode assignExpression;
     /** */ Type returnType;
     mixin OpEquals;
 }
@@ -2015,7 +2017,7 @@ public:
     {
         mixin (visitIfNotNull!(assignExpression));
     }
-    /** */ AssignExpression assignExpression;
+    /** */ ExpressionNode assignExpression;
     mixin OpEquals;
 }
 
@@ -2117,7 +2119,7 @@ public:
     /** */ Type type;
     /** */ NewAnonClassExpression newAnonClassExpression;
     /** */ Arguments arguments;
-    /** */ AssignExpression assignExpression;
+    /** */ ExpressionNode assignExpression;
     mixin OpEquals;
 }
 
@@ -2175,7 +2177,7 @@ public:
         mixin (visitIfNotNull!(assignExpression, arrayInitializer,
             structInitializer));
     }
-    /** */ AssignExpression assignExpression;
+    /** */ ExpressionNode assignExpression;
     /** */ ArrayInitializer arrayInitializer;
     /** */ StructInitializer structInitializer;
 
@@ -2244,7 +2246,7 @@ public:
     /** */ Type type;
     /** */ Token name;
     /** */ bool vararg;
-    /** */ AssignExpression default_;
+    /** */ ExpressionNode default_;
     /** */ TypeSuffix[] cstyle;
 
     mixin OpEquals;
@@ -2469,8 +2471,8 @@ public:
         mixin (visitIfNotNull!(unaryExpression, lower, upper));
     }
     /** */ UnaryExpression unaryExpression;
-    /** */ AssignExpression lower;
-    /** */ AssignExpression upper;
+    /** */ ExpressionNode lower;
+    /** */ ExpressionNode upper;
     mixin OpEquals;
 }
 
@@ -2550,7 +2552,7 @@ public:
     {
         mixin (visitIfNotNull!(assignExpression));
     }
-    /** */ AssignExpression assignExpression;
+    /** */ ExpressionNode assignExpression;
     mixin OpEquals;
 }
 
@@ -2705,9 +2707,9 @@ public:
     /** */ Type type;
     /** */ Token identifier;
     /** */ Type colonType;
-    /** */ AssignExpression colonExpression;
+    /** */ ExpressionNode colonExpression;
     /** */ Type assignType;
-    /** */ AssignExpression assignExpression;
+    /** */ ExpressionNode assignExpression;
     mixin OpEquals;
 }
 
@@ -2720,7 +2722,7 @@ public:
         mixin (visitIfNotNull!(type, assignExpression));
     }
     /** */ Type type;
-    /** */ AssignExpression assignExpression;
+    /** */ ExpressionNode assignExpression;
     mixin OpEquals;
 }
 
@@ -2905,7 +2907,7 @@ public:
     }
     /** */ Type type;
     /** */ Token identifier;
-    /** */ AssignExpression assignExpression;
+    /** */ ExpressionNode assignExpression;
     /** */ TemplateValueParameterDefault templateValueParameterDefault;
     mixin OpEquals;
 }
@@ -2918,7 +2920,7 @@ public:
     {
         mixin (visitIfNotNull!(token, assignExpression));
     }
-    /** */ AssignExpression assignExpression;
+    /** */ ExpressionNode assignExpression;
     /** */ Token token;
     mixin OpEquals;
 }
@@ -3040,8 +3042,8 @@ public:
     /** */ Token star;
     /** */ bool array;
     /** */ Type type;
-    /** */ AssignExpression low;
-    /** */ AssignExpression high;
+    /** */ ExpressionNode low;
+    /** */ ExpressionNode high;
     /** */ Parameters parameters;
     /** */ MemberFunctionAttribute[] memberFunctionAttributes;
     mixin OpEquals;
