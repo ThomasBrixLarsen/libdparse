@@ -268,7 +268,9 @@ class Parser
     {
         mixin(traceEnterAndExit!(__FUNCTION__));
         auto node = allocate!ArrayInitializer;
-        mixin (nullCheck!`expect(tok!"[")`);
+        auto open = expect(tok!"[");
+        mixin (nullCheck!`open`);
+        node.startLocation = open.index;
         ArrayMemberInitialization[] arrayMemberInitializations;
         while (moreTokens())
         {
@@ -281,7 +283,9 @@ class Parser
                 break;
         }
         node.arrayMemberInitializations = ownArray(arrayMemberInitializations);
-        mixin (nullCheck!`expect(tok!"]")`);
+        auto close = expect(tok!"]");
+        mixin (nullCheck!`close`);
+        node.endLocation = close.index;
         return node;
     }
 
@@ -1037,6 +1041,7 @@ class Parser
     AttributeDeclaration parseAttributeDeclaration(Attribute attribute = null)
     {
         auto node = allocate!AttributeDeclaration;
+        node.line = current.line;
         node.attribute = attribute is null ? parseAttribute() : attribute;
         expect(tok!":");
         return node;
@@ -1247,7 +1252,13 @@ class Parser
         mixin (nullCheck!`expect(tok!"..")`);
         expect(tok!"case");
         mixin (nullCheck!`node.high = parseAssignExpression()`);
-        mixin (nullCheck!`expect(tok!":")`);
+        auto colon = expect(tok!":");
+        if (colon is null)
+        {
+            deallocate(node);
+            return null;
+        }
+        node.colonLocation = colon.index;
         mixin (nullCheck!`node.declarationsAndStatements = parseDeclarationsAndStatements()`);
         return node;
     }
@@ -1264,7 +1275,13 @@ class Parser
         mixin(traceEnterAndExit!(__FUNCTION__));
         auto node = allocate!CaseStatement;
         node.argumentList = argumentList;
-        mixin (nullCheck!`expect(tok!":")`);
+        auto colon = expect(tok!":");
+        if (colon is null)
+        {
+            deallocate(node);
+            return null;
+        }
+        node.colonLocation = colon.index;
         mixin (nullCheck!`node.declarationsAndStatements = parseDeclarationsAndStatements()`);
         return node;
     }
@@ -1678,7 +1695,11 @@ class Parser
     {
         mixin(traceEnterAndExit!(__FUNCTION__));
         auto node = allocate!DebugCondition;
-        mixin (nullCheck!`expect(tok!"debug")`);
+
+        auto d = expect(tok!"debug");
+        mixin (nullCheck!`d`);
+        node.debugIndex = d.index;
+
         if (currentIs(tok!"("))
         {
             advance();
@@ -1768,7 +1789,8 @@ class Parser
             error("declaration expected instead of EOF");
             return null;
         }
-        comment = current.comment;
+        if (current.comment !is null)
+            comment = current.comment;
         Attribute[] attributes;
         do
         {
@@ -2035,32 +2057,13 @@ class Parser
                     node.variableDeclaration = parseVariableDeclaration(type, false, node.attributes);
             }
             else
-            {
-                if ((node.variableDeclaration = parseVariableDeclaration(type)) is null)
-                {
-                    deallocate(node);
-                    return null;
-                }
-            }
-
+                mixin (nullCheck!`node.variableDeclaration = parseVariableDeclaration(type)`);
             break;
         case tok!"version":
             if (peekIs(tok!"("))
-            {
-                if ((node.conditionalDeclaration = parseConditionalDeclaration()) is null)
-                {
-                    deallocate(node);
-                    return null;
-                }
-            }
+                mixin (nullCheck!`node.conditionalDeclaration = parseConditionalDeclaration()`);
             else if (peekIs(tok!"="))
-            {
-                if ((node.versionSpecification = parseVersionSpecification()) is null)
-                {
-                    deallocate(node);
-                    return null;
-                }
-            }
+                mixin (nullCheck!`node.versionSpecification = parseVersionSpecification()`);
             else
             {
                 error(`"=" or "(" expected following "version"`);
@@ -2070,15 +2073,9 @@ class Parser
             break;
         case tok!"debug":
             if (peekIs(tok!"="))
-            {
                 mixin (nullCheck!`node.debugSpecification = parseDebugSpecification()`);
-                mixin (nullCheck!`node.debugSpecification`);
-            }
             else
-            {
                 mixin (nullCheck!`node.conditionalDeclaration = parseConditionalDeclaration()`);
-                mixin (nullCheck!`node.conditionalDeclaration`);
-            }
             break;
         default:
             error("Declaration expected");
@@ -2215,7 +2212,13 @@ class Parser
         mixin(traceEnterAndExit!(__FUNCTION__));
         auto node = allocate!DefaultStatement;
         mixin (nullCheck!`expect(tok!"default")`);
-        mixin (nullCheck!`expect(tok!":")`);
+        auto colon = expect(tok!":");
+        if (colon is null)
+        {
+            deallocate(node);
+            return null;
+        }
+        node.colonLocation = colon.index;
         mixin (nullCheck!`node.declarationsAndStatements = parseDeclarationsAndStatements()`);
         return node;
     }
@@ -3562,7 +3565,7 @@ class Parser
      * Parses a LabeledStatement
      *
      * $(GRAMMAR $(RULEDEF labeledStatement):
-     *     $(LITERAL Identifier) $(LITERAL ':') $(RULE declarationOrStatement)
+     *     $(LITERAL Identifier) $(LITERAL ':') $(RULE declarationOrStatement)?
      *     ;)
      */
     LabeledStatement parseLabeledStatement()
@@ -3573,7 +3576,8 @@ class Parser
         if (ident is null) { deallocate(node); return null; }
         node.identifier = *ident;
         expect(tok!":");
-        mixin (nullCheck!`node.declarationOrStatement = parseDeclarationOrStatement()`);
+        if (!currentIs(tok!"}"))
+            mixin (nullCheck!`node.declarationOrStatement = parseDeclarationOrStatement()`);
         return node;
     }
 
@@ -5201,13 +5205,19 @@ class Parser
     {
         mixin(traceEnterAndExit!(__FUNCTION__));
         auto node = allocate!StructInitializer;
-        expect(tok!"{");
+        auto a = expect(tok!"{");
+        node.startLocation = a.index;
         if (currentIs(tok!"}"))
+        {
+            node.endLocation = current.index;
             advance();
+        }
         else
         {
             mixin (nullCheck!`node.structMemberInitializers = parseStructMemberInitializers()`);
-            mixin (nullCheck!`expect(tok!"}")`);
+            auto e = expect(tok!"}");
+            mixin (nullCheck!`e`);
+            node.endLocation = e.index;
         }
         return node;
     }
@@ -6474,6 +6484,7 @@ class Parser
 
         node.type = type is null ? parseType() : type;
         node.comment = comment;
+        comment = null;
 
         // TODO: handle function bodies correctly
 
@@ -6522,7 +6533,10 @@ class Parser
     {
         mixin(traceEnterAndExit!(__FUNCTION__));
         auto node = allocate!VersionCondition;
-        mixin (expectSequence!(tok!"version", tok!"("));
+        auto v = expect(tok!"version");
+        mixin (nullCheck!`v`);
+        node.versionIndex = v.index;
+        mixin (nullCheck!`expect(tok!"(")`);
         if (currentIsOneOf(tok!"intLiteral", tok!"identifier",
             tok!"unittest", tok!"assert"))
         {

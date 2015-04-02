@@ -328,7 +328,7 @@ template generateOpEquals(T)
             enum opEqualsPart = "";
         else static if (!isSomeFunction!(__traits(getMember, T, p[0]))
             && p[0] != "line" && p[0] != "column" && p[0] != "startLocation"
-            && p[0] != "endLocation")
+            && p[0] != "endLocation" && p[0] != "index")
         {
             static if (typeof(__traits(getMember, T, p[0])).stringof[$ - 2 .. $] == "[]")
             {
@@ -517,6 +517,8 @@ public:
         mixin (visitIfNotNull!(arrayMemberInitializations));
     }
     mixin OpEquals;
+    /** */ size_t startLocation;
+    /** */ size_t endLocation;
     /** */ ArrayMemberInitialization[] arrayMemberInitializations;
 }
 
@@ -856,6 +858,7 @@ final class AttributeDeclaration : ASTNode
         mixin (visitIfNotNull!(attribute));
     }
     /** */ Attribute attribute;
+    /** */ size_t line;
     mixin OpEquals;
 }
 
@@ -964,6 +967,7 @@ public:
     /** */ ExpressionNode low;
     /** */ ExpressionNode high;
     /** */ DeclarationsAndStatements declarationsAndStatements;
+	/** */ size_t colonLocation;
     mixin OpEquals;
 }
 
@@ -977,6 +981,7 @@ public:
     }
     /** */ ArgumentList argumentList;
     /** */ DeclarationsAndStatements declarationsAndStatements;
+	/** */ size_t colonLocation;
     mixin OpEquals;
 }
 
@@ -1165,6 +1170,7 @@ public:
     {
         mixin (visitIfNotNull!(identifierOrInteger));
     }
+    /** */ size_t debugIndex;
     /** */ Token identifierOrInteger;
     mixin OpEquals;
 }
@@ -1288,6 +1294,7 @@ public:
         mixin (visitIfNotNull!(declarationsAndStatements));
     }
     /** */ DeclarationsAndStatements declarationsAndStatements;
+	/** */ size_t colonLocation;
     mixin OpEquals;
 }
 
@@ -2329,7 +2336,7 @@ public:
         mixin (visitIfNotNull!(basicType, typeConstructor, type, primary,
             typeofExpression, typeidExpression, arrayLiteral, assocArrayLiteral,
             expression, dot, identifierOrTemplateInstance, isExpression,
-            lambdaExpression, functionLiteralExpression,
+            lambdaExpression, functionLiteralExpression, traitsExpression,
             mixinExpression, importExpression, vector, arguments));
     }
     /** */ Token dot;
@@ -2626,7 +2633,8 @@ public:
         mixin (visitIfNotNull!(structMemberInitializers));
     }
     /** */ StructMemberInitializers structMemberInitializers;
-
+    /** */ size_t startLocation;
+    /** */ size_t endLocation;
     mixin OpEquals;
 }
 
@@ -3172,6 +3180,7 @@ public:
     {
         mixin (visitIfNotNull!(token));
     }
+    /** */ size_t versionIndex;
     /** */ Token token;
     mixin OpEquals;
 }
