@@ -6717,19 +6717,19 @@ protected:
             return false;
         }
     }
-
+    
+    bool[typeof(current.index)] arrayLitCached;
     bool isAssociativeArrayLiteral()
     {
         mixin(traceEnterAndExit!(__FUNCTION__));
-        static bool[typeof(current.index)] cached;
-        if (auto p = current.index in cached)
+        if (auto p = current.index in arrayLitCached)
             return *p;
         size_t currentIndex = current.index;
         auto b = setBookmark();
         scope(exit) goToBookmark(b);
         advance();
         bool result = !currentIs(tok!"]") && parseExpression() !is null && currentIs(tok!":");
-        cached[currentIndex] = result;
+        arrayLitCached[currentIndex] = result;
         return result;
     }
 
