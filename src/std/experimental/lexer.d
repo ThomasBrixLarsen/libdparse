@@ -109,10 +109,10 @@
  * Copyright: Brian Schott 2013
  * License: $(LINK2 http://www.boost.org/LICENSE_1_0.txt Boost, License 1.0)
  * Authors: Brian Schott, with ideas shamelessly stolen from Andrei Alexandrescu
- * Source: $(PHOBOSSRC std/_lexer.d)
+ * Source: $(PHOBOSSRC std/experimental/_lexer.d)
  */
 
-module std.lexer;
+module std.experimental.lexer;
 
 /**
  * Template for determining the type used for a token type.
@@ -461,7 +461,7 @@ mixin template Lexer(Token, alias defaultTokenFunction,
         import std.range : stride;
 
         string[] pseudoTokens = array(tokenHandlers.stride(2));
-        string[] allTokens = array(sort(staticTokens ~ possibleDefaultTokens ~ pseudoTokens).uniq);
+        string[] allTokens = array(sort(staticTokens ~ possibleDefaultTokens ~ pseudoTokens).uniq());
         // Array consisting of a sorted list of the first characters of the
         // tokens.
         char[] beginningChars = getBeginningChars(allTokens);
@@ -512,6 +512,7 @@ mixin template Lexer(Token, alias defaultTokenFunction,
 
     private static string printCase(string[] tokens, string[] pseudoTokens, string indent)
     {
+        import std.array : array;
         import std.algorithm : countUntil;
         import std.conv : text;
         string[] sortedTokens = array(sort!"a.length > b.length"(tokens));
@@ -666,9 +667,12 @@ mixin template Lexer(Token, alias defaultTokenFunction,
 
     static ulong getFront(const ubyte[] arr) pure nothrow @trusted
     {
-        immutable importantBits = *(cast (ulong*) arr.ptr);
-        immutable filler = ulong.max >> ((8 - arr.length) * 8);
-        return importantBits & filler;
+        static union ByteArr { ulong l; ubyte[8] arr; }
+        static assert(ByteArr.sizeof == ulong.sizeof);
+        ByteArr b;
+        b.l = ulong.max;
+        b.arr[0 .. arr.length] = arr[];
+        return b.l;
     }
 
     void advance(ref Token token) pure nothrow @trusted
@@ -684,7 +688,7 @@ mixin template Lexer(Token, alias defaultTokenFunction,
         immutable ulong frontBytes = range.index + 8 <= range.bytes.length
             ? getFront(range.bytes[range.index .. range.index + 8])
             : getFront(range.bytes[range.index .. $]);
-        ubyte f = frontBytes & 0xff;
+        ubyte f = cast(ubyte) frontBytes;
 //        pragma(msg, tokenSearch);
         mixin(tokenSearch);
     _defaultTokenFunction:

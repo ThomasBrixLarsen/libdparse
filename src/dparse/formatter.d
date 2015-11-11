@@ -1,12 +1,12 @@
-module std.d.formatter;
+module dparse.formatter;
 
 import std.algorithm;
 import std.range;
 import std.stdio;
-import std.typetuple;
+import std.typetuple:TypeTuple;
 
-import std.d.ast;
-import std.d.lexer;
+import dparse.ast;
+import dparse.lexer;
 
 //debug = verbose;
 
@@ -398,12 +398,12 @@ class Formatter(Sink)
         if (assignExpression.ternaryExpression)
             format(assignExpression.ternaryExpression);
 
-        if(assignExpression.assignExpression)
+        if(assignExpression.expression)
         {
             space();
             put(tokenRep(assignExpression.operator));
             space();
-            format(assignExpression.assignExpression);
+            format(assignExpression.expression);
         }
     }
 
@@ -1037,13 +1037,18 @@ class Formatter(Sink)
 
     void format(const Deprecated deprecated_)
     {
-        debug(verbose) writeln("Deprecated");
-
+        debug (verbose)
+            writeln("Deprecated");
         put("deprecated");
-        if (deprecated_.stringLiteral.type != tok!"")
+        if (deprecated_.stringLiterals.length > 0)
         {
             put("(");
-            put(deprecated_.stringLiteral.text);
+            foreach (i, literal; deprecated_.stringLiterals)
+            {
+                if (i > 0)
+                    put(" ");
+                put(literal.text);
+            }
             put(")");
             newlineIndent();
         }
@@ -1248,7 +1253,6 @@ class Formatter(Sink)
         else if (cast(PrimaryExpression) n) format(cast(PrimaryExpression) n);
         else if (cast(RelExpression) n) format(cast(RelExpression) n);
         else if (cast(ShiftExpression) n) format(cast(ShiftExpression) n);
-        else if (cast(SliceExpression) n) format(cast(SliceExpression) n);
         else if (cast(TemplateMixinExpression) n) format(cast(TemplateMixinExpression) n);
         else if (cast(TernaryExpression) n) format(cast(TernaryExpression) n);
         else if (cast(TraitsExpression) n) format(cast(TraitsExpression) n);
@@ -1512,7 +1516,7 @@ class Formatter(Sink)
             if (type) format(type);
             if (parameters) format(parameters);
 
-            foreach(att; functionAttributes)
+            foreach(att; memberFunctionAttributes)
             {
                 space();
                 format(att);
@@ -1737,6 +1741,16 @@ class Formatter(Sink)
         put(");");
     }
 
+    void format(const Index index)
+    {
+        format(index.low);
+        if (index.high !is null)
+        {
+            put(" .. ");
+            format(index.high);
+        }
+    }
+
     void format(const IndexExpression indexExpression)
     {
         debug(verbose) writeln("IndexExpression");
@@ -1750,7 +1764,12 @@ class Formatter(Sink)
         {
             format(indexExpression.unaryExpression);
             put("[");
-            format(argumentList);
+            foreach (i, index; indexes)
+            {
+                if (i != 0)
+                    put(", ");
+                format(index);
+            }
             put("]");
         }
     }
@@ -2495,30 +2514,6 @@ class Formatter(Sink)
             put(" = ");
         }
         format(singleImport.identifierChain);
-    }
-
-    void format(const SliceExpression sliceExpression)
-    {
-        debug(verbose) writeln("SliceExpression");
-
-        /**
-        UnaryExpression unaryExpression;
-        AssignExpression lower;
-        AssignExpression upper;
-        **/
-
-        with(sliceExpression)
-        {
-            format(unaryExpression);
-            put("[");
-            if (lower && upper)
-            {
-                format(lower);
-                put("..");
-                format(upper);
-            }
-            put("]");
-        }
     }
 
     void format(const Statement statement)
@@ -3412,7 +3407,6 @@ class Formatter(Sink)
             if (castExpression) format(castExpression);
             if (functionCallExpression) format(functionCallExpression);
             if (assertExpression) format(assertExpression);
-            if (sliceExpression) format(sliceExpression);
             if (indexExpression) format(indexExpression);
 
             if (unaryExpression) format(unaryExpression);

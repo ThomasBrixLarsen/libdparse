@@ -11,18 +11,70 @@
  * Copyright: Brian Schott 2013
  * License: $(LINK2 http://www.boost.org/LICENSE_1_0.txt Boost, License 1.0)
  * Authors: Brian Schott
- * Source: $(PHOBOSSRC std/d/_ast.d)
  */
 
-module std.d.ast;
+module dparse.ast;
 
-import std.d.lexer;
+import dparse.lexer;
 import std.traits;
 import std.algorithm;
 import std.array;
 import std.string;
 
-// TODO: Many of these classes can be simplified by using std.variant.Algebraic
+private immutable uint[TypeInfo] typeMap;
+
+shared static this()
+{
+    typeMap[typeid(AddExpression)] = 1;
+    typeMap[typeid(AndAndExpression)] = 2;
+    typeMap[typeid(AndExpression)] = 3;
+    typeMap[typeid(AsmAddExp)] = 4;
+    typeMap[typeid(AsmAndExp)] = 5;
+    typeMap[typeid(AsmBrExp)] = 6;
+    typeMap[typeid(AsmExp)] = 7;
+    typeMap[typeid(AsmEqualExp)] = 8;
+    typeMap[typeid(AsmLogAndExp)] = 9;
+    typeMap[typeid(AsmLogOrExp)] = 10;
+    typeMap[typeid(AsmMulExp)] = 11;
+    typeMap[typeid(AsmOrExp)] = 12;
+    typeMap[typeid(AsmRelExp)] = 13;
+    typeMap[typeid(AsmUnaExp)] = 14;
+    typeMap[typeid(AsmShiftExp)] = 15;
+    typeMap[typeid(AsmXorExp)] = 16;
+    typeMap[typeid(AssertExpression)] = 17;
+    typeMap[typeid(AssignExpression)] = 18;
+    typeMap[typeid(CmpExpression)] = 19;
+    typeMap[typeid(DeleteExpression)] = 20;
+    typeMap[typeid(EqualExpression)] = 21;
+    typeMap[typeid(Expression)] = 22;
+    typeMap[typeid(FunctionCallExpression)] = 23;
+    typeMap[typeid(FunctionLiteralExpression)] = 24;
+    typeMap[typeid(IdentityExpression)] = 25;
+    typeMap[typeid(ImportExpression)] = 26;
+    typeMap[typeid(IndexExpression)] = 27;
+    typeMap[typeid(InExpression)] = 28;
+    typeMap[typeid(IsExpression)] = 29;
+    typeMap[typeid(LambdaExpression)] = 30;
+    typeMap[typeid(MixinExpression)] = 31;
+    typeMap[typeid(MulExpression)] = 32;
+    typeMap[typeid(NewAnonClassExpression)] = 33;
+    typeMap[typeid(NewExpression)] = 34;
+    typeMap[typeid(OrExpression)] = 35;
+    typeMap[typeid(OrOrExpression)] = 36;
+    typeMap[typeid(PowExpression)] = 37;
+    typeMap[typeid(PragmaExpression)] = 38;
+    typeMap[typeid(PrimaryExpression)] = 39;
+    typeMap[typeid(RelExpression)] = 40;
+    typeMap[typeid(ShiftExpression)] = 41;
+    typeMap[typeid(Index)] = 42;
+    typeMap[typeid(TemplateMixinExpression)] = 43;
+    typeMap[typeid(TernaryExpression)] = 44;
+    typeMap[typeid(TraitsExpression)] = 45;
+    typeMap[typeid(TypeidExpression)] = 46;
+    typeMap[typeid(TypeofExpression)] = 47;
+    typeMap[typeid(UnaryExpression)] = 48;
+    typeMap[typeid(XorExpression)] = 49;
+}
 
 /**
  * Implements the $(LINK2 http://en.wikipedia.org/wiki/Visitor_pattern, Visitor Pattern)
@@ -32,57 +84,62 @@ abstract class ASTVisitor
 {
 public:
 
+    /** */
     void visit(const ExpressionNode n)
     {
-        if (cast(AddExpression) n) visit(cast(AddExpression) n);
-        else if (cast(AndAndExpression) n) visit(cast(AndAndExpression) n);
-        else if (cast(AndExpression) n) visit(cast(AndExpression) n);
-        else if (cast(AsmAddExp) n) visit(cast(AsmAddExp) n);
-        else if (cast(AsmAndExp) n) visit(cast(AsmAndExp) n);
-        else if (cast(AsmBrExp) n) visit(cast(AsmBrExp) n);
-        else if (cast(AsmExp) n) visit(cast(AsmExp) n);
-        else if (cast(AsmEqualExp) n) visit(cast(AsmEqualExp) n);
-        else if (cast(AsmLogAndExp) n) visit(cast(AsmLogAndExp) n);
-        else if (cast(AsmLogOrExp) n) visit(cast(AsmLogOrExp) n);
-        else if (cast(AsmMulExp) n) visit(cast(AsmMulExp) n);
-        else if (cast(AsmOrExp) n) visit(cast(AsmOrExp) n);
-        else if (cast(AsmRelExp) n) visit(cast(AsmRelExp) n);
-        else if (cast(AsmUnaExp) n) visit(cast(AsmUnaExp) n);
-        else if (cast(AsmShiftExp) n) visit(cast(AsmShiftExp) n);
-        else if (cast(AsmXorExp) n) visit(cast(AsmXorExp) n);
-        else if (cast(AssertExpression) n) visit(cast(AssertExpression) n);
-        else if (cast(AssignExpression) n) visit(cast(AssignExpression) n);
-        else if (cast(CmpExpression) n) visit(cast(CmpExpression) n);
-        else if (cast(DeleteExpression) n) visit(cast(DeleteExpression) n);
-        else if (cast(EqualExpression) n) visit(cast(EqualExpression) n);
-        else if (cast(Expression) n) visit(cast(Expression) n);
-        else if (cast(FunctionCallExpression) n) visit(cast(FunctionCallExpression) n);
-        else if (cast(FunctionLiteralExpression) n) visit(cast(FunctionLiteralExpression) n);
-        else if (cast(IdentityExpression) n) visit(cast(IdentityExpression) n);
-        else if (cast(ImportExpression) n) visit(cast(ImportExpression) n);
-        else if (cast(IndexExpression) n) visit(cast(IndexExpression) n);
-        else if (cast(InExpression) n) visit(cast(InExpression) n);
-        else if (cast(IsExpression) n) visit(cast(IsExpression) n);
-        else if (cast(LambdaExpression) n) visit(cast(LambdaExpression) n);
-        else if (cast(MixinExpression) n) visit(cast(MixinExpression) n);
-        else if (cast(MulExpression) n) visit(cast(MulExpression) n);
-        else if (cast(NewAnonClassExpression) n) visit(cast(NewAnonClassExpression) n);
-        else if (cast(NewExpression) n) visit(cast(NewExpression) n);
-        else if (cast(OrExpression) n) visit(cast(OrExpression) n);
-        else if (cast(OrOrExpression) n) visit(cast(OrOrExpression) n);
-        else if (cast(PowExpression) n) visit(cast(PowExpression) n);
-        else if (cast(PragmaExpression) n) visit(cast(PragmaExpression) n);
-        else if (cast(PrimaryExpression) n) visit(cast(PrimaryExpression) n);
-        else if (cast(RelExpression) n) visit(cast(RelExpression) n);
-        else if (cast(ShiftExpression) n) visit(cast(ShiftExpression) n);
-        else if (cast(SliceExpression) n) visit(cast(SliceExpression) n);
-        else if (cast(TemplateMixinExpression) n) visit(cast(TemplateMixinExpression) n);
-        else if (cast(TernaryExpression) n) visit(cast(TernaryExpression) n);
-        else if (cast(TraitsExpression) n) visit(cast(TraitsExpression) n);
-        else if (cast(TypeidExpression) n) visit(cast(TypeidExpression) n);
-        else if (cast(TypeofExpression) n) visit(cast(TypeofExpression) n);
-        else if (cast(UnaryExpression) n) visit(cast(UnaryExpression) n);
-        else if (cast(XorExpression) n) visit(cast(XorExpression) n);
+        switch (typeMap[typeid(n)])
+        {
+        case 1: visit(cast(AddExpression) n); break;
+        case 2: visit(cast(AndAndExpression) n); break;
+        case 3: visit(cast(AndExpression) n); break;
+        case 4: visit(cast(AsmAddExp) n); break;
+        case 5: visit(cast(AsmAndExp) n); break;
+        case 6: visit(cast(AsmBrExp) n); break;
+        case 7: visit(cast(AsmExp) n); break;
+        case 8: visit(cast(AsmEqualExp) n); break;
+        case 9: visit(cast(AsmLogAndExp) n); break;
+        case 10: visit(cast(AsmLogOrExp) n); break;
+        case 11: visit(cast(AsmMulExp) n); break;
+        case 12: visit(cast(AsmOrExp) n); break;
+        case 13: visit(cast(AsmRelExp) n); break;
+        case 14: visit(cast(AsmUnaExp) n); break;
+        case 15: visit(cast(AsmShiftExp) n); break;
+        case 16: visit(cast(AsmXorExp) n); break;
+        case 17: visit(cast(AssertExpression) n); break;
+        case 18: visit(cast(AssignExpression) n); break;
+        case 19: visit(cast(CmpExpression) n); break;
+        case 20: visit(cast(DeleteExpression) n); break;
+        case 21: visit(cast(EqualExpression) n); break;
+        case 22: visit(cast(Expression) n); break;
+        case 23: visit(cast(FunctionCallExpression) n); break;
+        case 24: visit(cast(FunctionLiteralExpression) n); break;
+        case 25: visit(cast(IdentityExpression) n); break;
+        case 26: visit(cast(ImportExpression) n); break;
+        case 27: visit(cast(IndexExpression) n); break;
+        case 28: visit(cast(InExpression) n); break;
+        case 29: visit(cast(IsExpression) n); break;
+        case 30: visit(cast(LambdaExpression) n); break;
+        case 31: visit(cast(MixinExpression) n); break;
+        case 32: visit(cast(MulExpression) n); break;
+        case 33: visit(cast(NewAnonClassExpression) n); break;
+        case 34: visit(cast(NewExpression) n); break;
+        case 35: visit(cast(OrExpression) n); break;
+        case 36: visit(cast(OrOrExpression) n); break;
+        case 37: visit(cast(PowExpression) n); break;
+        case 38: visit(cast(PragmaExpression) n); break;
+        case 39: visit(cast(PrimaryExpression) n); break;
+        case 40: visit(cast(RelExpression) n); break;
+        case 41: visit(cast(ShiftExpression) n); break;
+        case 42: visit(cast(Index) n); break;
+        case 43: visit(cast(TemplateMixinExpression) n); break;
+        case 44: visit(cast(TernaryExpression) n); break;
+        case 45: visit(cast(TraitsExpression) n); break;
+        case 46: visit(cast(TypeidExpression) n); break;
+        case 47: visit(cast(TypeofExpression) n); break;
+        case 48: visit(cast(UnaryExpression) n); break;
+        case 49: visit(cast(XorExpression) n); break;
+        default: assert(false, __MODULE__ ~ " has a bug");
+        }
     }
 
     /** */ void visit(const AddExpression addExpression) { addExpression.accept(this); }
@@ -227,7 +284,7 @@ public:
     /** */ void visit(const SharedStaticDestructor sharedStaticDestructor) { sharedStaticDestructor.accept(this); }
     /** */ void visit(const ShiftExpression shiftExpression) { shiftExpression.accept(this); }
     /** */ void visit(const SingleImport singleImport) { singleImport.accept(this); }
-    /** */ void visit(const SliceExpression sliceExpression) { sliceExpression.accept(this); }
+    /** */ void visit(const Index index) { index.accept(this); }
     /** */ void visit(const Statement statement) { statement.accept(this); }
     /** */ void visit(const StatementNoCaseNoDefault statementNoCaseNoDefault) { statementNoCaseNoDefault.accept(this); }
     /** */ void visit(const StaticAssertDeclaration staticAssertDeclaration) { staticAssertDeclaration.accept(this); }
@@ -783,6 +840,8 @@ public:
     {
         mixin (visitIfNotNull!(assertion, message));
     }
+    /** */ size_t line;
+    /** */ size_t column;
     /** */ ExpressionNode assertion;
     /** */ ExpressionNode message;
     mixin OpEquals;
@@ -794,10 +853,10 @@ final class AssignExpression : ExpressionNode
 public:
     override void accept(ASTVisitor visitor) const
     {
-        mixin (visitIfNotNull!(ternaryExpression, assignExpression));
+        mixin (visitIfNotNull!(ternaryExpression, expression));
     }
     /** */ ExpressionNode ternaryExpression;
-    /** */ ExpressionNode assignExpression;
+    /** */ ExpressionNode expression;
     /** */ IdType operator;
     /** */ size_t line;
     /** */ size_t column;
@@ -868,8 +927,8 @@ final class AutoDeclaration : ASTNode
 public:
     override void accept(ASTVisitor visitor) const
     {
-        if (storageClass !is null)
-            visitor.visit(storageClass);
+        foreach (sc; storageClasses)
+            visitor.visit(sc);
         foreach (i; 0 .. initializers.length)
         {
             visitor.visit(initializers[i]);
@@ -877,7 +936,7 @@ public:
     }
     /** */ Token[] identifiers;
     /** */ Initializer[] initializers;
-    /** */ StorageClass storageClass;
+    /** */ StorageClass[] storageClasses;
     /** */ string comment;
     mixin OpEquals;
 }
@@ -1194,53 +1253,92 @@ public:
 
     override void accept(ASTVisitor visitor) const
     {
-        mixin (visitIfNotNull!(attributes, attributeDeclaration,
-            importDeclaration, functionDeclaration,
-            variableDeclaration, aliasThisDeclaration, structDeclaration,
-            classDeclaration, interfaceDeclaration, unionDeclaration,
-            enumDeclaration, aliasDeclaration, mixinDeclaration,
-            mixinTemplateDeclaration, unittest_, staticAssertDeclaration,
-            templateDeclaration, constructor,
-            destructor, staticConstructor, staticDestructor,
-            sharedStaticDestructor, sharedStaticConstructor,
-            conditionalDeclaration, pragmaDeclaration, versionSpecification,
-            invariant_, postblit, declarations, debugSpecification,
-            eponymousTemplateDeclaration, anonymousEnumDeclaration));
+
+        foreach (attr; attributes)
+            visitor.visit(attr);
+        foreach (dec; declarations)
+            visitor.visit(dec);
+        foreach (Type; DeclarationTypes)
+        {
+            const(Type)* value = storage.peek!Type;
+            if (value)
+            {
+                static if (isArray!Type)
+                    foreach (item; *(cast(Type*) value))
+                        visitor.visit(item);
+                else if (*value !is null)
+                    visitor.visit(*(cast(Type*) value));
+            }
+        }
     }
 
-    /** */ AliasDeclaration aliasDeclaration;
-    /** */ AliasThisDeclaration aliasThisDeclaration;
-    /** */ AnonymousEnumDeclaration anonymousEnumDeclaration;
+    private import std.variant:Algebraic;
+    private import std.typetuple:TypeTuple;
+
+    alias DeclarationTypes = TypeTuple!(AliasDeclaration, AliasThisDeclaration,
+        AnonymousEnumDeclaration, Attribute[], AttributeDeclaration,
+        ClassDeclaration, ConditionalDeclaration, Constructor, DebugSpecification,
+        /+Declaration[],+/ Destructor, EnumDeclaration, EponymousTemplateDeclaration,
+        FunctionDeclaration, ImportDeclaration, InterfaceDeclaration, Invariant,
+        MixinDeclaration, MixinTemplateDeclaration, Postblit, PragmaDeclaration,
+        SharedStaticConstructor, SharedStaticDestructor, StaticAssertDeclaration,
+        StaticConstructor, StaticDestructor, StructDeclaration,
+        TemplateDeclaration, UnionDeclaration, Unittest, VariableDeclaration,
+        VersionSpecification);
+
+    private Algebraic!(DeclarationTypes) storage;
+
+    private static string generateProperty(string type, string name)
+    {
+        return "const(" ~ type ~ ") " ~ name ~ "() const @property { auto p = storage.peek!" ~ type ~ "; return p is null? null : *p;}\n"
+            ~ "const(" ~ type ~ ") " ~ name ~ "(" ~ type ~ " node) @property { storage = node; return node; }";
+    }
+
     /** */ Attribute[] attributes;
-    /** */ AttributeDeclaration attributeDeclaration;
-    /** */ ClassDeclaration classDeclaration;
-    /** */ ConditionalDeclaration conditionalDeclaration;
-    /** */ Constructor constructor;
-    /** */ DebugSpecification debugSpecification;
     /** */ Declaration[] declarations;
-    /** */ Destructor destructor;
-    /** */ EnumDeclaration enumDeclaration;
-    /** */ EponymousTemplateDeclaration eponymousTemplateDeclaration;
-    /** */ FunctionDeclaration functionDeclaration;
-    /** */ ImportDeclaration importDeclaration;
-    /** */ InterfaceDeclaration interfaceDeclaration;
-    /** */ Invariant invariant_;
-    /** */ MixinDeclaration mixinDeclaration;
-    /** */ MixinTemplateDeclaration mixinTemplateDeclaration;
-    /** */ Postblit postblit;
-    /** */ PragmaDeclaration pragmaDeclaration;
-    /** */ SharedStaticConstructor sharedStaticConstructor;
-    /** */ SharedStaticDestructor sharedStaticDestructor;
-    /** */ StaticAssertDeclaration staticAssertDeclaration;
-    /** */ StaticConstructor staticConstructor;
-    /** */ StaticDestructor staticDestructor;
-    /** */ StructDeclaration structDeclaration;
-    /** */ TemplateDeclaration templateDeclaration;
-    /** */ UnionDeclaration unionDeclaration;
-    /** */ Unittest unittest_;
-    /** */ VariableDeclaration variableDeclaration;
-    /** */ VersionSpecification versionSpecification;
-    mixin OpEquals;
+
+    mixin(generateProperty("AliasDeclaration", "aliasDeclaration"));
+    mixin(generateProperty("AliasThisDeclaration", "aliasThisDeclaration"));
+    mixin(generateProperty("AnonymousEnumDeclaration", "anonymousEnumDeclaration"));
+    mixin(generateProperty("AttributeDeclaration", "attributeDeclaration"));
+    mixin(generateProperty("ClassDeclaration", "classDeclaration"));
+    mixin(generateProperty("ConditionalDeclaration", "conditionalDeclaration"));
+    mixin(generateProperty("Constructor", "constructor"));
+    mixin(generateProperty("DebugSpecification", "debugSpecification"));
+    /+mixin(generateProperty("Declaration[]", "declarations"));+/
+    mixin(generateProperty("Destructor", "destructor"));
+    mixin(generateProperty("EnumDeclaration", "enumDeclaration"));
+    mixin(generateProperty("EponymousTemplateDeclaration", "eponymousTemplateDeclaration"));
+    mixin(generateProperty("FunctionDeclaration", "functionDeclaration"));
+    mixin(generateProperty("ImportDeclaration", "importDeclaration"));
+    mixin(generateProperty("InterfaceDeclaration", "interfaceDeclaration"));
+    mixin(generateProperty("Invariant", "invariant_"));
+    mixin(generateProperty("MixinDeclaration", "mixinDeclaration"));
+    mixin(generateProperty("MixinTemplateDeclaration", "mixinTemplateDeclaration"));
+    mixin(generateProperty("Postblit", "postblit"));
+    mixin(generateProperty("PragmaDeclaration", "pragmaDeclaration"));
+    mixin(generateProperty("SharedStaticConstructor", "sharedStaticConstructor"));
+    mixin(generateProperty("SharedStaticDestructor", "sharedStaticDestructor"));
+    mixin(generateProperty("StaticAssertDeclaration", "staticAssertDeclaration"));
+    mixin(generateProperty("StaticConstructor", "staticConstructor"));
+    mixin(generateProperty("StaticDestructor", "staticDestructor"));
+    mixin(generateProperty("StructDeclaration", "structDeclaration"));
+    mixin(generateProperty("TemplateDeclaration", "templateDeclaration"));
+    mixin(generateProperty("UnionDeclaration", "unionDeclaration"));
+    mixin(generateProperty("Unittest", "unittest_"));
+    mixin(generateProperty("VariableDeclaration", "variableDeclaration"));
+    mixin(generateProperty("VersionSpecification", "versionSpecification"));
+
+
+    bool opEquals(const Object other) const
+    {
+        auto otherDeclaration = cast(Declaration) other;
+        if (otherDeclaration is null)
+            return false;
+        return attributes == otherDeclaration.attributes
+            && declarations == otherDeclaration.declarations
+            && storage == otherDeclaration.storage;
+    }
 }
 
 ///
@@ -1330,9 +1428,9 @@ final class Deprecated : ASTNode
 public:
     override void accept(ASTVisitor visitor) const
     {
-        mixin (visitIfNotNull!(stringLiteral));
+        mixin (visitIfNotNull!(stringLiterals));
     }
-    /** */ Token stringLiteral;
+    /** */ Token[] stringLiterals;
     mixin OpEquals;
 }
 
@@ -1635,13 +1733,13 @@ final class FunctionLiteralExpression : ExpressionNode
 public:
     override void accept(ASTVisitor visitor) const
     {
-        mixin (visitIfNotNull!(type, parameters, functionAttributes,
+        mixin (visitIfNotNull!(type, parameters, memberFunctionAttributes,
             functionBody));
     }
     /** */ IdType functionOrDelegate;
     /** */ Type type;
     /** */ Parameters parameters;
-    /** */ FunctionAttribute[] functionAttributes;
+    /** */ MemberFunctionAttribute[] memberFunctionAttributes;
     /** */ FunctionBody functionBody;
     mixin OpEquals;
 }
@@ -1795,15 +1893,28 @@ public:
 }
 
 ///
+final class Index : ASTNode
+{
+public:
+    override void accept(ASTVisitor visitor) const
+    {
+        mixin (visitIfNotNull!(low, high));
+    }
+    /** */ ExpressionNode low;
+    /** */ ExpressionNode high;
+    mixin OpEquals;
+}
+
+///
 final class IndexExpression : ExpressionNode
 {
 public:
     override void accept(ASTVisitor visitor) const
     {
-        mixin (visitIfNotNull!(unaryExpression, argumentList));
+        mixin (visitIfNotNull!(unaryExpression, indexes));
     }
     /** */ UnaryExpression unaryExpression;
-    /** */ ArgumentList argumentList;
+    /** */ Index[] indexes;
     mixin OpEquals;
 }
 
@@ -1828,6 +1939,7 @@ public:
     {
         mixin (visitIfNotNull!(blockStatement));
     }
+    /** */ size_t inTokenLocation;
     /** */ BlockStatement blockStatement;
     mixin OpEquals;
 }
@@ -2235,6 +2347,7 @@ public:
     {
         mixin (visitIfNotNull!(parameter, blockStatement));
     }
+    /** */ size_t outTokenLocation;
     /** */ Token parameter;
     /** */ BlockStatement blockStatement;
     mixin OpEquals;
@@ -2470,20 +2583,6 @@ public:
 }
 
 ///
-final class SliceExpression : ExpressionNode
-{
-public:
-    override void accept(ASTVisitor visitor) const
-    {
-        mixin (visitIfNotNull!(unaryExpression, lower, upper));
-    }
-    /** */ UnaryExpression unaryExpression;
-    /** */ ExpressionNode lower;
-    /** */ ExpressionNode upper;
-    mixin OpEquals;
-}
-
-///
 final class Statement : ASTNode
 {
 public:
@@ -2533,6 +2632,8 @@ public:
     }
     /** */ FunctionBody functionBody;
     /** */ size_t location;
+    /** */ size_t line;
+    /** */ size_t column;
     /** */ string comment;
     mixin OpEquals;
 }
@@ -2547,6 +2648,8 @@ public:
     }
     /** */ FunctionBody functionBody;
     /** */ size_t location;
+    /** */ size_t line;
+    /** */ size_t column;
     /** */ string comment;
     mixin OpEquals;
 }
@@ -3090,10 +3193,9 @@ public:
     override void accept(ASTVisitor visitor) const
     {
         // TODO prefix, postfix, unary
-        mixin (visitIfNotNull!(primaryExpression, newExpression,
-            deleteExpression, castExpression, functionCallExpression, argumentList,
-            unaryExpression, type, identifierOrTemplateInstance, assertExpression,
-            sliceExpression, indexExpression));
+        mixin (visitIfNotNull!(primaryExpression, newExpression, deleteExpression,
+            castExpression, functionCallExpression, argumentList, unaryExpression,
+            type, identifierOrTemplateInstance, assertExpression, indexExpression));
     }
 
     /** */ Type type;
@@ -3108,7 +3210,6 @@ public:
     /** */ ArgumentList argumentList;
     /** */ IdentifierOrTemplateInstance identifierOrTemplateInstance;
     /** */ AssertExpression assertExpression;
-    /** */ SliceExpression sliceExpression;
     /** */ IndexExpression indexExpression;
     mixin OpEquals;
 }
