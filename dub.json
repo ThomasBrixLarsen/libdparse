@@ -7,5 +7,6 @@
 	"version": "0.3.0-alpha",
 	"importPaths": ["src", "experimental_allocator"],
 	"sourcePaths": ["src", "experimental_allocator"],
-	"dflags": ["-relocation-model=pic"]
+	"dflags-ldc": ["-relocation-model=pic"],
+	"dflags-dmd": ["-fPIC"]
 }
