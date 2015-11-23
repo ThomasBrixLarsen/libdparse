@@ -4310,7 +4310,7 @@ class Parser
         }
         node.parameters = ownArray(parameters);
     end:
-		node.endLine = current.line;
+        node.endLine = current.line;
         node.endColumn = current.column;
         if (expect(tok!")") is null)
             return null;
@@ -5903,6 +5903,8 @@ class Parser
             error("type expected");
             return null;
         }
+        node.startLine = current.line;
+        node.startColumn = current.column;
         switch (current.type)
         {
         case tok!"const":
@@ -5951,6 +5953,8 @@ class Parser
             break loop;
         }
         node.typeSuffixes = ownArray(typeSuffixes);
+        node.endLine = current.line;
+        node.endColumn = current.column;
         return node;
     }
 
