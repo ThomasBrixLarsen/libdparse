@@ -1608,6 +1608,10 @@ public:
     /** */ Expression increment;
     /** */ DeclarationOrStatement declarationOrStatement;
     /** */ size_t startIndex;
+    /** */ size_t startLine;
+    /** */ size_t startColumn;
+    /** */ size_t endLine;
+    /** */ size_t endColumn;
     mixin OpEquals;
 }
 
@@ -1627,6 +1631,10 @@ public:
     /** */ Expression high;
     /** */ DeclarationOrStatement declarationOrStatement;
     /** */ size_t startIndex;
+    /** */ size_t startLine;
+    /** */ size_t startColumn;
+    /** */ size_t endLine;
+    /** */ size_t endColumn;
     mixin OpEquals;
 }
 
@@ -3314,6 +3322,10 @@ public:
     /** */ Expression expression;
     /** */ DeclarationOrStatement declarationOrStatement;
     /** */ size_t startIndex;
+    /** */ size_t startLine;
+    /** */ size_t startColumn;
+    /** */ size_t endLine;
+    /** */ size_t endColumn;
     mixin OpEquals;
 }
 

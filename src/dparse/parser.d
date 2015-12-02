@@ -2652,6 +2652,9 @@ class Parser
         auto node = allocate!ForStatement;
         mixin (nullCheck!`expect(tok!"for")`);
         if (!moreTokens) node.startIndex = current().index;
+        node.startLine = current().line;
+        node.startColumn = current().column;
+        node.startIndex = current().index;
         mixin (nullCheck!`expect(tok!"(")`);
 
         if (currentIs(tok!";"))
@@ -2677,6 +2680,8 @@ class Parser
             return node; // this line makes DCD better
         }
         mixin (nullCheck!`node.declarationOrStatement = parseDeclarationOrStatement()`);
+        node.endLine = current().line;
+        node.endColumn = current().column;
         return node;
     }
 
@@ -2700,6 +2705,8 @@ class Parser
             deallocate(node);
             return null;
         }
+        node.startLine = current().line;
+        node.startColumn = current().column;
         node.startIndex = current().index;
         mixin (nullCheck!`expect(tok!"(")`);
         ForeachTypeList feType = parseForeachTypeList();
@@ -2732,6 +2739,8 @@ class Parser
             return node; // this line makes DCD better
         }
         mixin (nullCheck!`node.declarationOrStatement = parseDeclarationOrStatement()`);
+        node.endLine = current().line;
+        node.endColumn = current().column;
         return node;
     }
 
@@ -6594,6 +6603,8 @@ class Parser
         mixin(traceEnterAndExit!(__FUNCTION__));
         auto node = allocate!WhileStatement;
         expect(tok!"while");
+        node.startLine = current().line;
+        node.startColumn = current().column;
         node.startIndex = current().index;
         expect(tok!"(");
         mixin (nullCheck!`node.expression = parseExpression()`);
@@ -6604,6 +6615,8 @@ class Parser
             return node; // this line makes DCD better
         }
         mixin (nullCheck!`node.declarationOrStatement = parseDeclarationOrStatement()`);
+        node.endLine = current().line;
+        node.endColumn = current().column;
         return node;
     }
 
