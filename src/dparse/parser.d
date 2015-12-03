@@ -2340,7 +2340,11 @@ class Parser
         mixin(traceEnterAndExit!(__FUNCTION__));
         auto node = allocate!DoStatement;
         mixin (nullCheck!`expect(tok!"do")`);
+        node.startLine = current().line;
+        node.startColumn = current().column;
         mixin (nullCheck!`node.statementNoCaseNoDefault = parseStatementNoCaseNoDefault()`);
+        node.endLine = current().line;
+        node.endColumn = current().column;
         mixin (nullCheck!`expect(tok!"while")`);
         mixin (nullCheck!`expect(tok!"(")`);
         mixin (nullCheck!`node.expression = parseExpression()`);
