@@ -1487,6 +1487,10 @@ public:
      * Byte position of the closing brace
      */
     size_t endLocation;
+    /** */ size_t startLine;
+    /** */ size_t startColumn;
+    /** */ size_t endLine;
+    /** */ size_t endColumn;
     mixin OpEquals;
 }
 

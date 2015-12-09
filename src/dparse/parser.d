@@ -2367,6 +2367,8 @@ class Parser
         const open = expect(tok!"{");
         mixin (nullCheck!`open`);
         node.startLocation = open.index;
+        node.startLine = open.line;
+        node.startColumn = open.column;
         EnumMember[] enumMembers;
         while (moreTokens())
         {
@@ -2394,7 +2396,11 @@ class Parser
         node.enumMembers = ownArray(enumMembers);
         const close = expect (tok!"}");
         if (close !is null)
+        {
             node.endLocation = close.index;
+            node.startLine = close.line;
+            node.startColumn = close.column;
+        }
         return node;
     }
 
